@@ -66,6 +66,25 @@ char	*ft_substr(char *s, unsigned int start, unsigned int len)
 	return (ret);
 }
 
+char	*ft_strjoin(char *s1, char *s2)// verifier si il est intelligent
+{
+	char	*str;
+	char	*ret;
+
+	if (!(s1 && s2))
+		return (0);
+	str = malloc((ft_strlen(s1) + ft_strlen(s2) + 1) * sizeof(char));
+	ret = str;
+	if (!str)
+		return (0);
+	while (*s1)
+		*(str++) = *(s1++);
+	while (*s2)
+		*(str++) = *(s2++);
+	*str = 0;
+	return (ret);
+}
+
 char	*split_cmd(char *cmdline, unsigned int *i, char c)
 {
 	unsigned int	j;
@@ -96,17 +115,67 @@ char	**ft_strsjoin(char *s, char **ss)
 	return (ret);
 }
 
+char	*add_quote(char *cmdline, char *ret, unsigned int *i)
+{
+	unsigned int	j;
+	char			*tmp;
+
+	j = 0;
+	++*i;
+	while (cmdline[*i + j] && cmdline[*i + j] != '\'')
+		j++;
+	tmp = ret;
+	ret = ft_strjoin(ret, ft_substr(cmdline, *i, j));
+	if (!ret)
+		return (NULL);
+	free(tmp);
+	*i += j + 1;
+	return (ret);
+}
+
+char	*add_dquote(char *cmdline, char *ret, unsigned int *i)
+{
+	unsigned int	j;
+	char			*tmp;
+
+	j = 0;
+	++*i;
+	while (cmdline[*i + j] && cmdline[*i + j] != '"')
+		j++;
+	tmp = ret;
+	ret = ft_strjoin(ret, ft_substr(cmdline, *i, j));
+	if (!ret)
+		return (NULL);
+	if (tmp)
+		free(tmp);
+	*i += j + 1;
+	return (ret);
+}
+
 char	*split_cmd_sp(char *cmdline, unsigned int *i)
 {
 	unsigned int	j;
+	char			*ret;
 
-	j = 0;
-	while (cmdline[*i + j] && cmdline[*i + j]
-			!= ' ' && cmdline[*i + j] != '<' && cmdline[*i + j]
-			!= '>' && cmdline[*i + j] != '|' && cmdline[*i + j] != '&')
-		++j;
-	*i += j;
-	return (ft_substr(cmdline, *i - j, j));
+	ret = NULL;
+	while (cmdline[*i] && cmdline[*i] != ' ' && cmdline[*i] != '<' && cmdline[*i]
+				!= '>' && cmdline[*i] != '|' && cmdline[*i] != '&')
+	{
+		j = 0;
+		while (cmdline[*i + j] && cmdline[*i + j]
+				!= ' ' && cmdline[*i + j] != '<' && cmdline[*i + j]
+				!= '>' && cmdline[*i + j] != '|' && cmdline[*i + j]
+				!= '&' && cmdline[*i + j] != '\'' && cmdline[*i + j] != '"')
+			++j;
+		if (j && !ret)
+			ret = ft_substr(cmdline, *i, j);
+		*i += j;
+		if (cmdline[*i] && cmdline[*i] == '\'')
+			ret = add_quote(cmdline, ret, i);
+		if (cmdline[*i] && cmdline[*i] == '"')
+			ret = add_dquote(cmdline, ret, i);
+	}
+	return (ret);
 }
 
 
