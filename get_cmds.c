@@ -66,20 +66,18 @@ char	*ft_substr(char *s, unsigned int start, unsigned int len)
 	return (ret);
 }
 
-char	*ft_strjoin(char *s1, char *s2)// verifier si il est intelligent
+char	*ft_strjoin(char *s1, char *s2)
 {
 	char	*str;
 	char	*ret;
 
-	if (!(s1 && s2))
-		return (0);
 	str = malloc((ft_strlen(s1) + ft_strlen(s2) + 1) * sizeof(char));
 	ret = str;
 	if (!str)
 		return (0);
-	while (*s1)
+	while (s1 && *s1)
 		*(str++) = *(s1++);
-	while (*s2)
+	while (s2 && *s2)
 		*(str++) = *(s2++);
 	*str = 0;
 	return (ret);
@@ -115,35 +113,46 @@ char	**ft_strsjoin(char *s, char **ss)
 	return (ret);
 }
 
-char	*add_quote(char *cmdline, char *ret, unsigned int *i)
+char	*add_quote(char *cmdline, char *str, unsigned int *i)
 {
+	char			*ret;
 	unsigned int	j;
 	char			*tmp;
+	char			*new;
 
 	j = 0;
 	++*i;
+	ret = NULL;
 	while (cmdline[*i + j] && cmdline[*i + j] != '\'')
 		j++;
-	tmp = ret;
-	ret = ft_strjoin(ret, ft_substr(cmdline, *i, j));
+	tmp = str;
+	new = ft_substr(cmdline, *i, j);
+	ret = ft_strjoin(str, new);
+	free(new);
 	if (!ret)
 		return (NULL);
-	free(tmp);
+	if (tmp)
+		free(tmp);
 	*i += j + 1;
 	return (ret);
 }
 
-char	*add_dquote(char *cmdline, char *ret, unsigned int *i)
+char	*add_dquote(char *cmdline, char *str, unsigned int *i)
 {
+	char			*ret;
 	unsigned int	j;
 	char			*tmp;
+	char			*new;
 
 	j = 0;
 	++*i;
+	ret = NULL;
 	while (cmdline[*i + j] && cmdline[*i + j] != '"')
 		j++;
-	tmp = ret;
-	ret = ft_strjoin(ret, ft_substr(cmdline, *i, j));
+	tmp = str;
+	new = ft_substr(cmdline, *i, j);
+	ret = ft_strjoin(str, new);
+	free(new);
 	if (!ret)
 		return (NULL);
 	if (tmp)
@@ -156,6 +165,8 @@ char	*split_cmd_sp(char *cmdline, unsigned int *i)
 {
 	unsigned int	j;
 	char			*ret;
+	char			*tmp;
+	char			*new;
 
 	ret = NULL;
 	while (cmdline[*i] && cmdline[*i] != ' ' && cmdline[*i] != '<' && cmdline[*i]
@@ -167,13 +178,22 @@ char	*split_cmd_sp(char *cmdline, unsigned int *i)
 				!= '>' && cmdline[*i + j] != '|' && cmdline[*i + j]
 				!= '&' && cmdline[*i + j] != '\'' && cmdline[*i + j] != '"')
 			++j;
-		if (j && !ret)
-			ret = ft_substr(cmdline, *i, j);
+		tmp = ret;
+		if (j)
+		{
+			new = ft_substr(cmdline, *i, j);
+			ret = ft_strjoin(tmp, new);
+			free(new);
+			printf("ret = %s\n", ret);
+		}
 		*i += j;
 		if (cmdline[*i] && cmdline[*i] == '\'')
 			ret = add_quote(cmdline, ret, i);
 		if (cmdline[*i] && cmdline[*i] == '"')
 			ret = add_dquote(cmdline, ret, i);
+		if (tmp)
+			free(tmp);
+		tmp = NULL;
 	}
 	return (ret);
 }
