@@ -113,6 +113,34 @@ char	**ft_strsjoin(char *s, char **ss)
 	return (ret);
 }
 
+char	*add_var(char *cmdline, char *str, unsigned int *i)
+{
+	char			*ret;
+	unsigned int	j;
+	char			*tmp;
+	char			*new;
+
+	j = 0;
+	++*i;
+	ret = NULL;
+	while (cmdline[*i + j] && cmdline[*i + j] != '$' && cmdline[*i + j]
+				!= ' ' && cmdline[*i + j] != '<' && cmdline[*i + j]
+				!= '>' && cmdline[*i + j] != '|' && cmdline[*i + j]
+				!= '&' && cmdline[*i + j] != '\'' && cmdline[*i + j] != '"')
+		j++;
+	tmp = str;
+	new = ft_strdup("VARIABLE"); //---------------------------- Chercher variable
+	ret = ft_strjoin(str, new);
+	printf("ret = %s\n", ret);
+	free(new);
+	if (tmp)
+		free(tmp);
+	if (!ret)
+		return (NULL);
+	*i += j;
+	return (ret);
+}
+
 char	*add_quote(char *cmdline, char *str, unsigned int *i)
 {
 	char			*ret;
@@ -173,27 +201,29 @@ char	*split_cmd_sp(char *cmdline, unsigned int *i)
 				!= '>' && cmdline[*i] != '|' && cmdline[*i] != '&')
 	{
 		j = 0;
-		while (cmdline[*i + j] && cmdline[*i + j]
+		while (cmdline[*i + j] && cmdline[*i + j] != '$' && cmdline[*i + j]
 				!= ' ' && cmdline[*i + j] != '<' && cmdline[*i + j]
 				!= '>' && cmdline[*i + j] != '|' && cmdline[*i + j]
 				!= '&' && cmdline[*i + j] != '\'' && cmdline[*i + j] != '"')
 			++j;
-		tmp = ret;
 		if (j)
 		{
+			tmp = ret;
 			new = ft_substr(cmdline, *i, j);
 			ret = ft_strjoin(tmp, new);
 			free(new);
 			printf("ret = %s\n", ret);
+			if (tmp)
+				free(tmp);
+			tmp = NULL;
 		}
 		*i += j;
+		if (cmdline[*i] && cmdline[*i] == '$')
+			ret = add_var(cmdline, ret, i);
 		if (cmdline[*i] && cmdline[*i] == '\'')
 			ret = add_quote(cmdline, ret, i);
 		if (cmdline[*i] && cmdline[*i] == '"')
 			ret = add_dquote(cmdline, ret, i);
-		if (tmp)
-			free(tmp);
-		tmp = NULL;
 	}
 	return (ret);
 }
